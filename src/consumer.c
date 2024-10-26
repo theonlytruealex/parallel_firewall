@@ -31,4 +31,3 @@ int create_consumers(pthread_t *tids,
 
 	return num_consumers;
 }
-

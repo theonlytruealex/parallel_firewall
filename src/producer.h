@@ -8,4 +8,4 @@
 
 void publish_data(struct so_ring_buffer_t *rb, const char *filename);
 
-#endif /*__SO_CONSUMER_H__*/
+#endif /*__SO_PRODUCER_H__*/

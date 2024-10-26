@@ -17,6 +17,5 @@ int create_consumers(pthread_t *tids,
 		 			 so_ring_buffer_t *rb,
 					 const char *out_filename);
 
-void publish_data(struct so_ring_buffer_t *rb, const char *filename);
-
 #endif /* __SO_CONSUMER_H__ */
+

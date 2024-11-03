@@ -11,7 +11,7 @@
 
 void consumer_thread(so_consumer_ctx_t *ctx)
 {
-	/* TODO: implement consume threads */
+	/* TODO: implement consumer thread */
 	(void) ctx;
 }
 

@@ -4,7 +4,7 @@
 
 int ring_buffer_init(so_ring_buffer_t *ring, size_t cap)
 {
-	/* TODO: implement me */
+	/* TODO: implement ring_buffer_init */
 	(void) ring;
 	(void) cap;
 
@@ -13,7 +13,7 @@ int ring_buffer_init(so_ring_buffer_t *ring, size_t cap)
 
 ssize_t ring_buffer_enqueue(so_ring_buffer_t *ring, void *data, size_t size)
 {
-	/* TODO: implement me */
+	/* TODO: implement ring_buffer_enqueue */
 	(void) ring;
 	(void) data;
 	(void) size;
@@ -23,7 +23,7 @@ ssize_t ring_buffer_enqueue(so_ring_buffer_t *ring, void *data, size_t size)
 
 ssize_t ring_buffer_dequeue(so_ring_buffer_t *ring, void *data, size_t size)
 {
-	/* TODO: Implement me */
+	/* TODO: Implement ring_buffer_dequeue */
 	(void) ring;
 	(void) data;
 	(void) size;
@@ -33,12 +33,12 @@ ssize_t ring_buffer_dequeue(so_ring_buffer_t *ring, void *data, size_t size)
 
 void ring_buffer_destroy(so_ring_buffer_t *ring)
 {
-	/* TODO: Implement me */
+	/* TODO: Implement ring_buffer_destroy */
 	(void) ring;
 }
 
 void ring_buffer_stop(so_ring_buffer_t *ring)
 {
-	/* TODO: Implement me */
+	/* TODO: Implement ring_buffer_stop */
 	(void) ring;
 }

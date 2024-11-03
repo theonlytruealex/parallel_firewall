@@ -1,7 +1,7 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
 #ifndef __SO_PACKET_H__
 #define __SO_PACKET_H__
-
-#include "list.h"
 
 #define PKT_SZ 256
 

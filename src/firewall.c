@@ -8,6 +8,7 @@
 
 #include "ring_buffer.h"
 #include "consumer.h"
+#include "producer.h"
 #include "log/log.h"
 #include "packet.h"
 #include "utils.h"
@@ -40,7 +41,7 @@ void __attribute__((destructor)) dest()
 int main(int argc, char **argv)
 {
 	so_ring_buffer_t ring_buffer;
-	int num_consumers, threads;
+	int num_consumers, threads, rc;
 	pthread_t *thread_ids = NULL;
 
 	if (argc < 4) {
@@ -48,8 +49,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	int rc = ring_buffer_init(&ring_buffer, SO_RING_SZ);
-
+	rc = ring_buffer_init(&ring_buffer, SO_RING_SZ);
 	DIE(rc < 0, "ring_buffer_init");
 
 	num_consumers = strtol(argv[3], NULL, 10);
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 	}
 
 	thread_ids = calloc(num_consumers, sizeof(pthread_t));
-	DIE(thread_ids == NULL, "malloc pthread_t");
+	DIE(thread_ids == NULL, "calloc pthread_t");
 
 	/* create consumer threads */
 	threads = create_consumers(thread_ids, num_consumers, &ring_buffer, argv[2]);

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-//
+
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>

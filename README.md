@@ -139,26 +139,27 @@ A successful run will show the output:
 ```console
 student@so:~/.../assignments/parallel-firewall/tests$ make check
 [...]
-Test [    10 packets, sort False, 1 thread ] ...................... passed ... 3
-Test [ 1,000 packets, sort False, 1 thread ] ...................... passed ... 3
-Test [20,000 packets, sort False, 1 thread ] ...................... passed ... 4
-Test [    10 packets, sort True , 2 threads] ...................... passed ... 5
-Test [    10 packets, sort True , 4 threads] ...................... passed ... 5
-Test [   100 packets, sort True , 2 threads] ...................... passed ... 5
-Test [   100 packets, sort True , 4 threads] ...................... passed ... 5
-Test [ 1,000 packets, sort True , 2 threads] ...................... passed ... 5
-Test [ 1,000 packets, sort True , 4 threads] ...................... passed ... 5
-Test [10,000 packets, sort True , 2 threads] ...................... passed ... 5
-Test [10,000 packets, sort True , 4 threads] ...................... passed ... 5
-Test [20,000 packets, sort True , 2 threads] ...................... passed ... 5
-Test [20,000 packets, sort True , 4 threads] ...................... passed ... 5
-Test [    10 packets, sort False, 4 threads] ...................... passed ... 6
-Test [   100 packets, sort False, 4 threads] ...................... passed ... 6
-Test [ 1,000 packets, sort False, 4 threads] ...................... passed ... 6
-Test [10,000 packets, sort False, 4 threads] ...................... passed ... 6
-Test [20,000 packets, sort False, 4 threads] ...................... passed ... 6
-
-Total:                                                                    90/100
+Test [    10 packets, sort False, 1 thread ] ...................... passed ... 3  
+Test [ 1,000 packets, sort False, 1 thread ] ...................... passed ... 3  
+Test [20,000 packets, sort False, 1 thread ] ...................... passed ... 4  
+Test [    10 packets, sort True , 2 threads] ...................... passed ... 5  
+Test [    10 packets, sort True , 4 threads] ...................... passed ... 5  
+Test [   100 packets, sort True , 2 threads] ...................... passed ... 5  
+Test [   100 packets, sort True , 4 threads] ...................... passed ... 5  
+Test [ 1,000 packets, sort True , 2 threads] ...................... passed ... 5  
+Test [ 1,000 packets, sort True , 4 threads] ...................... passed ... 5  
+Test [10,000 packets, sort True , 2 threads] ...................... passed ... 5  
+Test [10,000 packets, sort True , 4 threads] ...................... passed ... 5  
+Test [20,000 packets, sort True , 2 threads] ...................... passed ... 5  
+Test [20,000 packets, sort True , 4 threads] ...................... passed ... 5  
+Test [ 1,000 packets, sort False, 4 threads] ...................... passed ... 5  
+Test [ 1,000 packets, sort False, 8 threads] ...................... passed ... 5  
+Test [10,000 packets, sort False, 4 threads] ...................... passed ... 5  
+Test [10,000 packets, sort False, 8 threads] ...................... passed ... 5  
+Test [20,000 packets, sort False, 4 threads] ...................... passed ... 5  
+Test [20,000 packets, sort False, 8 threads] ...................... passed ... 5  
+                                                                                  
+Checker:                                                                    90/100
 ```
 
 ### Running the Linters

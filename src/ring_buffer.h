@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-License-Identifier: BSD-3-Clause */
 
 #ifndef __SO_RINGBUFFER_H__
 #define __SO_RINGBUFFER_H__

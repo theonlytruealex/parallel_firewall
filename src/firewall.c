@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 	/* start publishing data */
 	publish_data(&ring_buffer, argv[1]);
 
-	/* TODO: wait for child processes to finish execution*/
+	/* TODO: wait for child threads to finish execution*/
 	(void) threads;
 
 	free(thread_ids);

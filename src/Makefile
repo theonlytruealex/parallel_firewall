@@ -4,7 +4,7 @@ CPPFLAGS := -I$(UTILS_PATH)
 CFLAGS := -Wall -Wextra
 
 CFLAGS += -ggdb -O0
-LDLIBS := -lpthread 
+LDLIBS := -lpthread
 
 SRCS:= ring_buffer.c producer.c consumer.c packet.c $(UTILS_PATH)/log/log.c
 HDRS := $(patsubst %.c,%.h,$(SRCS))

@@ -8,15 +8,31 @@
 
 ## Statement
 
-A firewall is a program that checks network packets against a series of filters which provide a decision regarding dropping or allowing the packets to continue to the uppper level in the TCP/IP stack.
-In the case of this project, instead of a network card, there will be a producer thread that buffers packets into a circular buffer, out of which consumer threads will take packets and process them in order to decide whether they advance to the upper levels of the stack.
-You will have to implement the circular buffer and the consumer threads in order to provide a log file with the firewall's decisions ordered by a timestamp.
+A firewall is a program that checks network packets against a series of filters which provide a decision regarding dropping or allowing the packets to continue to their intended destination.
+
+**In a real setup**, the network card will receive real packets (e.g. packets having [`Ethernet`](https://en.wikipedia.org/wiki/Ethernet_frame), [`IP`](https://en.wikipedia.org/wiki/IPv4) headers plus payload) from the network and will send them to the firewall for processing.
+The firewall will decide if the packets are to be dropped or not and, if not, passes them further.
+
+**In this assignment**, instead of real network packets, we'll deal with made up packets consisting of a made up source (a number), a made up destination (also a number), a timestamp (also a number) and some payload.
+And instead of the network card providing the packets, we'll have a **producer thread** creating these packets.
+
+The created packets will be inserted into a [`circular buffer`](https://en.wikipedia.org/wiki/Circular_buffer), out of which **consumer threads** (which implement the firewall logic) will take packets and process them in order to decide whether they advance to the destination.
+
+The result of this processing is a log file in which the firewall will record the decision taken (PASS or DROP) for each packet, along with other information such as timestamp.
+
+The purpose of this assignment is to:
+
+- implement the circular buffer, along with synchronization mechanisms for it to work in a multithreaded program
+
+- implement the consumer threads, which consume packets and process them
+
+- provide the log file containing the result of the packet processing
 
 ## Support Code
 
 The support code consists of the directories:
 
-- `src/` contains the skeleton for the parallelized firewall and the already implemented serial code.
+- `src/` contains the skeleton for the parallelized firewall and the already implemented serial code in `src/serial.c`.
   You will have to implement the missing parts marked as `TODO`
 
 - `utils/` contains utility files used for debugging and logging.
@@ -37,6 +53,7 @@ When there are new packets that need to be handled, the `consumer` threads must 
 **Waiting in a `while()` loop or sleeping is not considered a valid synchronization mechanism and points will be deducted.**
 
 Implement the `consumer` related functions marked with `TODO` in the `src/consumer.c` file.
+**The number of consumer threads will be passed as the 3rd command-line argument**
 
 ### Ring Buffers
 
@@ -49,12 +66,12 @@ Thus, the shared ring buffer offers the following fields:
 - `cap` the size of the internal buffer.
 - `data` pointer to the internal buffer.
 
-Apart from these fields you have to add syncronization primitives in order to allow multiple threads to access the ring buffer in a deterministic manner.
+Apart from these fields you have to add synchronization primitives in order to allow multiple threads to access the ring buffer in a deterministic manner.
 You can use mutexes, semaphores, conditional variables and other synchronization mechanisms offered by the `pthread` library.
 
 You will have to implement the following interface for the ring buffer:
 
-- `ring_buffer_init()`: initialize the ring buffer (allocate memory and syncronization primitives).
+- `ring_buffer_init()`: initialize the ring buffer (allocate memory and synchronization primitives).
 - `ring_buffer_enqueue()`: add elements to the ring buffer.
 - `ring_buffer_dequeue()`: remove elements from the ring buffer.
 - `ring_buffer_destroy()`: free up the memory used by the ring_buffer.
@@ -65,12 +82,15 @@ You will have to implement the following interface for the ring buffer:
 The output of the firewall will be a log file with the rows containing the firewall's decision, the hash of the packet and its timestamp.
 The actual format can be found in the serial implementation (at `src/serial.c`).
 
-When parallelly processing the packets the threads will finish up the work in a non deterministic order.
+When processing the packets in parallel the threads will finish up the work in a non deterministic order.
+The packet processing functions are already implemented in `src/packet.c`
+
 We would like the logs to be sorted by the packet timestamp, the order that they came in from the producer.
 Thus, the `consumers` should insert the packet information to the log file such as the result is ordered by timestamp.
+The printing format can be found in `./src/serial.c`
 
 The logs must be written to the file in ascending order during packet processing.
-**Sorting the log file after the consumer threads have finshed processing is not considered a valid synchronization mechanism and points will be deducted.**
+**Sorting the log file after the consumer threads have finished processing is not considered a valid synchronization mechanism and points will be deducted.**
 
 ## Operations
 
@@ -121,7 +141,8 @@ When using `grade.sh` you will get a maximum of 90/100 points for general correc
 ### Restrictions
 
 - Threads must yield the cpu when waiting for empty/full buffers i.e. not doing `busy waiting`.
-- The logs must be written as they are processed and not after the processing is done and ordered scendingly by the timestamp.
+- The logs must be written as they are processed and not after the processing is done, in ascending order by the timestamp.
+- The number of running threads must be at least `num_consumers + 1`, where `num_consumers` is the 3rd command-line argument of the `firewall` binary.
 
 ### Grades
 
@@ -139,26 +160,26 @@ A successful run will show the output:
 ```console
 student@so:~/.../assignments/parallel-firewall/tests$ make check
 [...]
-Test [    10 packets, sort False, 1 thread ] ...................... passed ... 3  
-Test [ 1,000 packets, sort False, 1 thread ] ...................... passed ... 3  
-Test [20,000 packets, sort False, 1 thread ] ...................... passed ... 4  
-Test [    10 packets, sort True , 2 threads] ...................... passed ... 5  
-Test [    10 packets, sort True , 4 threads] ...................... passed ... 5  
-Test [   100 packets, sort True , 2 threads] ...................... passed ... 5  
-Test [   100 packets, sort True , 4 threads] ...................... passed ... 5  
-Test [ 1,000 packets, sort True , 2 threads] ...................... passed ... 5  
-Test [ 1,000 packets, sort True , 4 threads] ...................... passed ... 5  
-Test [10,000 packets, sort True , 2 threads] ...................... passed ... 5  
-Test [10,000 packets, sort True , 4 threads] ...................... passed ... 5  
-Test [20,000 packets, sort True , 2 threads] ...................... passed ... 5  
-Test [20,000 packets, sort True , 4 threads] ...................... passed ... 5  
-Test [ 1,000 packets, sort False, 4 threads] ...................... passed ... 5  
-Test [ 1,000 packets, sort False, 8 threads] ...................... passed ... 5  
-Test [10,000 packets, sort False, 4 threads] ...................... passed ... 5  
-Test [10,000 packets, sort False, 8 threads] ...................... passed ... 5  
-Test [20,000 packets, sort False, 4 threads] ...................... passed ... 5  
-Test [20,000 packets, sort False, 8 threads] ...................... passed ... 5  
-                                                                                  
+Test [    10 packets, sort False, 1 thread ] ...................... passed ... 3
+Test [ 1,000 packets, sort False, 1 thread ] ...................... passed ... 3
+Test [20,000 packets, sort False, 1 thread ] ...................... passed ... 4
+Test [    10 packets, sort True , 2 threads] ...................... passed ... 5
+Test [    10 packets, sort True , 4 threads] ...................... passed ... 5
+Test [   100 packets, sort True , 2 threads] ...................... passed ... 5
+Test [   100 packets, sort True , 4 threads] ...................... passed ... 5
+Test [ 1,000 packets, sort True , 2 threads] ...................... passed ... 5
+Test [ 1,000 packets, sort True , 4 threads] ...................... passed ... 5
+Test [10,000 packets, sort True , 2 threads] ...................... passed ... 5
+Test [10,000 packets, sort True , 4 threads] ...................... passed ... 5
+Test [20,000 packets, sort True , 2 threads] ...................... passed ... 5
+Test [20,000 packets, sort True , 4 threads] ...................... passed ... 5
+Test [ 1,000 packets, sort False, 4 threads] ...................... passed ... 5
+Test [ 1,000 packets, sort False, 8 threads] ...................... passed ... 5
+Test [10,000 packets, sort False, 4 threads] ...................... passed ... 5
+Test [10,000 packets, sort False, 8 threads] ...................... passed ... 5
+Test [20,000 packets, sort False, 4 threads] ...................... passed ... 5
+Test [20,000 packets, sort False, 8 threads] ...................... passed ... 5
+
 Checker:                                                                    90/100
 ```
 

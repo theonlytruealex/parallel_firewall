@@ -26,7 +26,9 @@ int create_consumers(pthread_t *tids,
 	(void) out_filename;
 
 	for (int i = 0; i < num_consumers; i++) {
-		/* TODO: Launch consumer threads */
+		/*
+		 * TODO: Launch consumer threads
+		 **/
 	}
 
 	return num_consumers;

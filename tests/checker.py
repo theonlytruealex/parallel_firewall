@@ -27,6 +27,8 @@ SERIAL_TIMEOUT = 5
 
 TEST_SIZES = [10, 100, 1_000, 10_000, 20_000]
 
+test_duration = {}
+passed_tests = set()
 
 """Two millisecond for each probe"""
 TRACE_LOG_TIMESLICE = 1 / 500
@@ -148,7 +150,7 @@ def file_exists_probe_check(probe: List[bool]) -> bool:
 def run_once_and_check_output(binary: str, in_file_path: str, out_file_path: str,
                               ref_file_path: str, sort_out_file: bool,
                               threads: int = 1, test_timeout: float = 1,
-                              trace_logs: bool = False) -> bool:
+                              trace_logs: bool = False) -> (bool, int):
     """Run the test once and check the output file with the reference file
 
     Also, delete the output file before running to ensure all the content
@@ -160,8 +162,10 @@ def run_once_and_check_output(binary: str, in_file_path: str, out_file_path: str
     except FileNotFoundError:
         pass
 
+    duration = -1
     with subprocess.Popen([binary, in_file_path, out_file_path, f'{threads}'],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setpgrp) as proc_firewall_res:
+        start = time.time_ns()
         try:
             """Check periodically if the output file is sorted correctly"""
             if trace_logs:
@@ -197,22 +201,23 @@ def run_once_and_check_output(binary: str, in_file_path: str, out_file_path: str
                 if err != "":
                     print(err)
                     proc_firewall_res.kill()
-                    return False
+                    return False, duration
 
             else:
                 _, _ = proc_firewall_res.communicate(timeout=test_timeout)
+                duration = time.time_ns() - start
         except subprocess.TimeoutExpired:
             print("Time expired for process!! Killing ...")
             proc_firewall_res.kill()
-            return False
+            return False, duration
         except KeyboardInterrupt:
             # Test was CTRL-C'ed
             proc_firewall_res.kill()
-            return False
+            return False, duration
 
-    return files_are_identical(out_file_path, ref_file_path, sort_out_file)
+    return files_are_identical(out_file_path, ref_file_path, sort_out_file), duration
 
-def check(test_name: str, sort_out_file: bool, threads: int,
+def check(test_name: str, test_size: int, sort_out_file: bool, threads: int,
           test_timeout: float = 1, number_of_runs: int = 1,
           trace_logs: bool = False):
     """Check a test file.
@@ -239,23 +244,52 @@ def check(test_name: str, sort_out_file: bool, threads: int,
     if threads == 1:
         number_of_runs = 1
 
+    if  threads // 2 >= 1 and test_size >= 1000 and \
+        (threads // 2, test_size) not in passed_tests:
+        print(f"Test with {threads // 2} consumers must pass first.")
+        return False
+
     # Running `number_of_runs` times and check the output every time.
     # We do this in order to check the program output is consistent.
+    time_avg = 0
     for _ in range(number_of_runs):
-        if not run_once_and_check_output(firewall_path, in_file_path,
+        res, dur = run_once_and_check_output(firewall_path, in_file_path,
                                          out_file_path, ref_file_path,
                                          True,
                                          threads=threads,
-                                         test_timeout=test_timeout):
+                                         test_timeout=test_timeout)
+        time_avg += dur / 1000
+        if not res:
             return False
 
+    # Save current avarage runtime of the test configuration
+    test_duration[(threads, test_size)] = time_avg / number_of_runs
+
+    # Check if a previous test was run with less threads in order to check speedup
+    # Tests of under 1k packets will not be checked for speedup
+    if threads // 2 >= 1 and test_size >= 1000:
+        if (threads // 2, test_size) in passed_tests:
+            prev_test_duration = test_duration[(threads // 2, test_size)]
+            current_test_duration = test_duration[(threads, test_size)]
+
+            speedup = (prev_test_duration - current_test_duration) / (current_test_duration)
+
+            # Doubling the number of threads should yield at least 20% speedup
+            if speedup < 0.2:
+                print(f"Test ({test_size} packets, {threads} threads) took {current_test_duration} us, "
+                      f"Test ({test_size} packets, {threads // 2} threads) took {prev_test_duration} us "
+                      f"with a speedup of {speedup} which is below 0.2")
+                return False
+
+
     if trace_logs:
-        if not run_once_and_check_output(firewall_path, in_file_path,
+        res, _ = run_once_and_check_output(firewall_path, in_file_path,
                                          out_file_path, ref_file_path,
                                          sort_out_file,
                                          threads=threads,
                                          test_timeout=test_timeout,
-                                         trace_logs=trace_logs):
+                                         trace_logs=trace_logs)
+        if not res:
             return False
     return True
 
@@ -274,7 +308,8 @@ def check_and_grade(test_size: int, sort_out_file: bool = False,
         "s" if threads > 1 else " ")
     result_format += " " + 22 * "." + " "
 
-    if check(test_name, sort_out_file, threads, test_timeout, 20, trace_logs):
+    if check(test_name, test_size, sort_out_file, threads, test_timeout, 20, trace_logs):
+        passed_tests.add((threads, test_size))
         print(result_format + "passed ... {}".format(points))
         TOTAL += points
     else:
@@ -294,7 +329,8 @@ def main():
     # Test out serial implementation: 10 points.
     check_and_grade(TEST_SIZES[0], threads=1, points=3)
     check_and_grade(TEST_SIZES[2], threads=1, points=3)
-    check_and_grade(TEST_SIZES[4], threads=1, points=4)
+    check_and_grade(TEST_SIZES[3], threads=1, points=2)
+    check_and_grade(TEST_SIZES[4], threads=1, points=2)
 
     # Test out parallel implementation, but without the restriction of having
     # correctly sorted output: 50 points (2 x 5 x 5).
@@ -305,8 +341,8 @@ def main():
     # Test out parallel implementation, this time with the restriction of having
     # correctly sored output: 30 points (5 x 6)
     for test_size in TEST_SIZES[2:]:
+        check_and_grade(test_size, threads=2, sort_out_file=False, points=5, trace_logs=True)
         check_and_grade(test_size, threads=4, sort_out_file=False, points=5, trace_logs=True)
-        check_and_grade(test_size, threads=8, sort_out_file=False, points=5, trace_logs=True)
 
     TOTAL = int(TOTAL)
     print("\nTotal:" + 67 * " " + f" {TOTAL}/100")

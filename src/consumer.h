@@ -8,7 +8,7 @@
 
 typedef struct so_consumer_ctx_t {
 	struct so_ring_buffer_t *producer_rb;
-
+	const char *out_filename;
     /* TODO: add synchronization primitives for timestamp ordering */
 } so_consumer_ctx_t;
 

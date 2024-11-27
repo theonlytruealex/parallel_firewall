@@ -2,43 +2,82 @@
 
 #include "ring_buffer.h"
 
+
+ pthread_mutex_t rb_mutex;
+ pthread_cond_t prodOk, consOk;
 int ring_buffer_init(so_ring_buffer_t *ring, size_t cap)
 {
-	/* TODO: implement ring_buffer_init */
-	(void) ring;
-	(void) cap;
+	pthread_mutex_init(&rb_mutex, NULL);
+	pthread_cond_init(&prodOk, NULL);
+	pthread_cond_init(&consOk, NULL);
+	ring->cap = cap;
+	ring->data = (char *)malloc(cap);
+	ring->write_pos = 0;
+	ring->len = 0;
+	ring->read_pos = 0;
+	ring->connected = 1;
 
 	return 1;
 }
 
 ssize_t ring_buffer_enqueue(so_ring_buffer_t *ring, void *data, size_t size)
 {
-	/* TODO: implement ring_buffer_enqueue */
-	(void) ring;
-	(void) data;
-	(void) size;
-
-	return -1;
+	pthread_mutex_lock(&rb_mutex);
+	if (size > ring->cap) {
+		pthread_mutex_unlock(&rb_mutex);
+		return 1;
+	}
+	int i = 0;
+	char *readable_data = (char *)data;
+	while (size > ring->cap - ring->len) {
+		pthread_cond_wait(&consOk, &rb_mutex);
+	}
+	while (size > 0) {
+		ring->data[ring->write_pos] = readable_data[i];
+		i++;
+		size--;
+		ring->write_pos = (ring->write_pos + 1) % ring->cap;
+		ring->len++;
+	}
+	pthread_cond_broadcast(&prodOk);
+	pthread_mutex_unlock(&rb_mutex);
+	return 0;
 }
 
 ssize_t ring_buffer_dequeue(so_ring_buffer_t *ring, void *data, size_t size)
 {
-	/* TODO: Implement ring_buffer_dequeue */
-	(void) ring;
-	(void) data;
-	(void) size;
-
-	return -1;
+	pthread_mutex_lock(&rb_mutex);
+	if (size > ring->cap) {
+		pthread_mutex_unlock(&rb_mutex);
+		return 1;
+	}
+	int i = 0;
+	char *readable_data = (char *)data;
+	while (ring->len < size && ring->connected) {
+		pthread_cond_wait(&prodOk, &rb_mutex);
+	}
+	while (size > 0) {
+		readable_data[i] = ring->data[ring->read_pos];
+		i++;
+		size--;
+		ring->read_pos = (ring->read_pos + 1) % ring->cap;
+		ring->len--;
+	}
+	pthread_cond_broadcast(&consOk);
+	pthread_mutex_unlock(&rb_mutex);
+	return 0;
 }
 
 void ring_buffer_destroy(so_ring_buffer_t *ring)
 {
-	/* TODO: Implement ring_buffer_destroy */
-	(void) ring;
+	free(ring->data);
+	pthread_mutex_destroy(&rb_mutex);
+	pthread_cond_destroy(&prodOk);
+	pthread_cond_destroy(&consOk);
 }
 
 void ring_buffer_stop(so_ring_buffer_t *ring)
 {
-	/* TODO: Implement ring_buffer_stop */
-	(void) ring;
+	pthread_cond_broadcast(&prodOk);
+	ring->connected = 0;
 }

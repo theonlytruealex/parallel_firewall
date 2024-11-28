@@ -8,8 +8,6 @@
 #include <pthread.h>
 #include <stdlib.h>
 
-
-
 typedef struct so_ring_buffer_t {
 	char *data;
 

@@ -5,6 +5,7 @@
 
 #include "ring_buffer.h"
 #include "packet.h"
+extern pthread_mutex_t write_mutex;
 
 typedef struct so_consumer_ctx_t {
 	struct so_ring_buffer_t *producer_rb;

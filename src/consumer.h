@@ -5,7 +5,10 @@
 
 #include "ring_buffer.h"
 #include "packet.h"
+
 extern pthread_mutex_t write_mutex;
+extern pthread_mutex_t timestamp_mutex;
+extern pthread_cond_t next_timestamp;
 
 typedef struct so_consumer_ctx_t {
 	struct so_ring_buffer_t *producer_rb;

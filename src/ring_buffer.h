@@ -7,6 +7,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include "packet.h"
 
 typedef struct so_ring_buffer_t {
 	char *data;
@@ -18,7 +19,11 @@ typedef struct so_ring_buffer_t {
 	size_t cap;
 
 	int connected;
-	int check;
+	pthread_mutex_t rb_mutex;
+	pthread_cond_t prodOk, consOk;
+	unsigned long *timestamps;
+	int last;
+	int first;
 } so_ring_buffer_t;
 
 int     ring_buffer_init(so_ring_buffer_t *rb, size_t cap);

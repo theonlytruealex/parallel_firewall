@@ -61,18 +61,15 @@ int main(int argc, char **argv)
 
 	thread_ids = calloc(num_consumers, sizeof(pthread_t));
 	DIE(thread_ids == NULL, "calloc pthread_t");
-
-	/* create consumer threads */
 	threads = create_consumers(thread_ids, num_consumers, &ring_buffer, argv[2]);
-
-	/* start publishing data */
 	publish_data(&ring_buffer, argv[1]);
-
-	/* TODO: wait for child threads to finish execution*/
 	for (int i = 0; i < num_consumers; i++)
 		pthread_join(thread_ids[i], NULL);
 	(void) threads;
 	pthread_mutex_destroy(&write_mutex);
+	pthread_mutex_destroy(&timestamp_mutex);
+	pthread_cond_destroy(&next_timestamp);
+	ring_buffer_destroy(&ring_buffer);
 	free(thread_ids);
 
 	return 0;

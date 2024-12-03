@@ -45,8 +45,10 @@ ssize_t ring_buffer_enqueue(so_ring_buffer_t *ring, void *data, size_t size)
 	pthread_mutex_lock(&timestamp_mutex);
 	ring->timestamps[ring->last] = pkt->hdr.timestamp;
 	ring->last += 1;
-	if (ring->last >= ring->tcap)
-		ring->last = 0;
+	if (ring->last >= ring->tcap) {
+		ring->tcap *= 2;
+		ring->timestamps = (unsigned long *)realloc(ring->timestamps, ring->tcap * sizeof(unsigned long));
+	}
 	pthread_cond_broadcast(&next_timestamp);
 	pthread_mutex_unlock(&timestamp_mutex);
 	return 0;

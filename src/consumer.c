@@ -29,8 +29,8 @@ void *consumer_thread(void *ctx_v)
 			pthread_cond_wait(&next_timestamp, &timestamp_mutex);
 		ctx->producer_rb->first += 1;
 		pthread_mutex_lock(&write_mutex);
-		pthread_cond_broadcast(&next_timestamp);
 		pthread_mutex_unlock(&timestamp_mutex);
+		pthread_cond_broadcast(&next_timestamp);
 		write(out_fd, out_buf, len);
 		pthread_mutex_unlock(&write_mutex);
 	}

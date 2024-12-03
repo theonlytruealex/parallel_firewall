@@ -18,8 +18,8 @@ int ring_buffer_init(so_ring_buffer_t *ring, size_t cap)
 	ring->connected = 1;
 	ring->first = 0;
 	ring->last = 0;
-	ring->timestamps = (unsigned long *)malloc(5001 * sizeof(unsigned long));
-	ring->tcap = 5001;
+	ring->timestamps = (unsigned long *)malloc(1001 * sizeof(unsigned long));
+	ring->tcap = 1001;
 	return 1;
 }
 
@@ -49,8 +49,8 @@ ssize_t ring_buffer_enqueue(so_ring_buffer_t *ring, void *data, size_t size)
 		ring->tcap *= 2;
 		ring->timestamps = (unsigned long *)realloc(ring->timestamps, ring->tcap * sizeof(unsigned long));
 	}
-	pthread_cond_broadcast(&next_timestamp);
 	pthread_mutex_unlock(&timestamp_mutex);
+	pthread_cond_broadcast(&next_timestamp);
 	return 0;
 }
 

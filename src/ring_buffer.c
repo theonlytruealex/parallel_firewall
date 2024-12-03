@@ -18,17 +18,14 @@ int ring_buffer_init(so_ring_buffer_t *ring, size_t cap)
 	ring->connected = 1;
 	ring->first = 0;
 	ring->last = 0;
-	ring->timestamps = (unsigned long *)calloc(20001, sizeof(unsigned long));
+	ring->timestamps = (unsigned long *)malloc(5001 * sizeof(unsigned long));
+	ring->tcap = 5001;
 	return 1;
 }
 
 ssize_t ring_buffer_enqueue(so_ring_buffer_t *ring, void *data, size_t size)
 {
 	pthread_mutex_lock(&ring->rb_mutex);
-	if (size > ring->cap) {
-		pthread_mutex_unlock(&ring->rb_mutex);
-		return 1;
-	}
 	int i = 0;
 	char *readable_data = (char *)data;
 
@@ -48,6 +45,8 @@ ssize_t ring_buffer_enqueue(so_ring_buffer_t *ring, void *data, size_t size)
 	pthread_mutex_lock(&timestamp_mutex);
 	ring->timestamps[ring->last] = pkt->hdr.timestamp;
 	ring->last += 1;
+	if (ring->last >= ring->tcap)
+		ring->last = 0;
 	pthread_cond_broadcast(&next_timestamp);
 	pthread_mutex_unlock(&timestamp_mutex);
 	return 0;
@@ -56,10 +55,6 @@ ssize_t ring_buffer_enqueue(so_ring_buffer_t *ring, void *data, size_t size)
 ssize_t ring_buffer_dequeue(so_ring_buffer_t *ring, void *data, size_t size)
 {
 	pthread_mutex_lock(&ring->rb_mutex);
-	if (size > ring->cap) {
-		pthread_mutex_unlock(&ring->rb_mutex);
-		return 1;
-	}
 	int i = 0;
 	char *readable_data = (char *)data;
 

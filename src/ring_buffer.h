@@ -24,6 +24,7 @@ typedef struct so_ring_buffer_t {
 	unsigned long *timestamps;
 	int last;
 	int first;
+	int tcap;
 } so_ring_buffer_t;
 
 int     ring_buffer_init(so_ring_buffer_t *rb, size_t cap);

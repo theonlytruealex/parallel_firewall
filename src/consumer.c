@@ -28,6 +28,8 @@ void *consumer_thread(void *ctx_v)
 		while (ctx->producer_rb->timestamps[ctx->producer_rb->first] != timestamp)
 			pthread_cond_wait(&next_timestamp, &timestamp_mutex);
 		ctx->producer_rb->first += 1;
+		if (ctx->producer_rb->first >= ctx->producer_rb->tcap)
+			ctx->producer_rb->first = 0;
 		pthread_mutex_lock(&write_mutex);
 		pthread_cond_broadcast(&next_timestamp);
 		pthread_mutex_unlock(&timestamp_mutex);
